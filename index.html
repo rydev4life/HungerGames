@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The 100th Hunger Games — Capitol Access Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body class="login-page">
+
+<div class="login-bg">
+  <div class="login-overlay"></div>
+  <div class="ember" style="left:10%;animation-delay:0s;animation-duration:6s"></div>
+  <div class="ember" style="left:25%;animation-delay:1.5s;animation-duration:8s"></div>
+  <div class="ember" style="left:45%;animation-delay:0.7s;animation-duration:5s"></div>
+  <div class="ember" style="left:65%;animation-delay:2s;animation-duration:7s"></div>
+  <div class="ember" style="left:80%;animation-delay:1s;animation-duration:9s"></div>
+  <div class="ember" style="left:90%;animation-delay:3s;animation-duration:6s"></div>
+</div>
+
+<div class="login-container">
+  <div class="login-seal">◆ RESTRICTED ACCESS ◆</div>
+  <div class="login-logo">
+    <img src="capitol-seal.webp" alt="Capitol Seal" style="width:120px;height:auto;display:block;margin:0 auto 8px;filter:drop-shadow(0 0 24px rgba(201,168,76,0.35));" />
+    <h1 class="login-title">THE 100<sup>TH</sup> HUNGER GAMES</h1>
+    <p class="login-subtitle">5th Quinquennial Quell · Capitol Elite Portal</p>
+    <div class="login-divider">━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+  </div>
+
+  <div class="login-card">
+    <div class="login-card-header">IDENTITY VERIFICATION</div>
+
+    <div id="loginError" class="login-error" style="display:none"></div>
+
+    <div class="form-group">
+      <label class="form-label">SELECT YOUR IDENTITY</label>
+      <select id="loginSelect" class="form-select">
+        <option value="">— Choose your Capitol Elite —</option>
+        <option value="aurelius_voss">Aurelius Voss — Chairman, Voss Industries</option>
+        <option value="octavia_sterling">Octavia Sterling — Chief Executive, Sterling Bank</option>
+        <option value="cassian_vire">Cassian Vire — Owner, Panem Energy Consortium</option>
+        <option value="valentina_crest">Valentina Crest — Celebrity Sponsor & Socialite</option>
+        <option value="lucius_draven">Lucius Draven — Founder, Draven Security Solutions</option>
+        <option value="aurelia_fawn">Aurelia Fawn — Capitol Fashion Mogul</option>
+        <option value="magnus_halberd">Magnus Halberd — Chairman, Halberd Defense Systems</option>
+        <option value="celestia_wren">Celestia Wren — Entertainment Producer</option>
+        <option value="tiberius_vale">Tiberius Vale — Transportation & Maglev Rail Magnate</option>
+        <option value="seraphina_lux">Seraphina Lux — Owner, Lux Media Group</option>
+        <option value="atticus_crane">Atticus Crane — Senior Gamemaker Representative</option>
+        <option value="vesper_montclair">Vesper Montclair — Arena Design Executive</option>
+        <option value="caius_evermont">Caius Evermont — Chairman, Evermont Agricultural Holdings</option>
+        <option value="ophelia_sloane">Ophelia Sloane — Owner, Sloane Pharmaceuticals</option>
+        <option value="dorian_golding">Dorian Golding — Precious Metals & Resource Tycoon</option>
+        <option value="lavinia_rosehart">Lavinia Rosehart — Luxury Goods Consortium Executive</option>
+        <option value="maximus_argent">Maximus Argent — Capitol Construction & Infrastructure</option>
+        <option value="isolde_vesper">Isolde Vesper — Biotechnology & Genetics Entrepreneur</option>
+        <option value="corvin_blackthorne">Corvin Blackthorne — Director, Blackthorne Genetics</option>
+        <option value="portia_bellamy">Portia Bellamy — Head of Tribute Talent Management</option>
+        <option value="hadrian_ashcroft">Hadrian Ashcroft — Chairman, Capitol Sponsor Relations</option>
+        <option value="callista_marrow">Callista Marrow — Lead Arena Architect</option>
+        <option value="orion_lockwood">Orion Lockwood — Information Broker & Intelligence</option>
+        <option value="cornelia_plume">Cornelia Plume — Political Consultant & Power Broker</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ACCESS CODE</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="Enter your assigned code..." />
+    </div>
+
+    <button class="login-btn" onclick="attemptLogin()">
+      <i class="ti ti-key"></i> ENTER THE CAPITOL
+    </button>
+
+    <div class="login-links">
+      <a href="public/spectator.html" class="spectator-link">
+        <i class="ti ti-broadcast"></i> Public Spectator Feed
+      </a>
+    </div>
+  </div>
+
+  <div class="login-footer">
+    <span>PANEM ET CIRCENSES</span>
+    <span>·</span>
+    <span>ANNO CENTESIMO</span>
+    <span>·</span>
+    <span>GLORY TO THE CAPITOL</span>
+  </div>
+</div>
+
+<script type="module" src="js/login.js"></script>
+</body>
+</html>

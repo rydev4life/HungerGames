@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitol Portal — The 100th Hunger Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body class="app-page" style="overflow:hidden;">
+
+<div class="cannon-flash" id="cannonFlash"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- CANNON DEATH NOTIFICATION -->
+<div class="cannon-overlay" id="cannonOverlay">
+  <div class="cannon-notification">
+    <div class="cannon-notif-seal">◆ CAPITOL BROADCAST ◆</div>
+    <span class="cannon-notif-icon">💀</span>
+    <div class="cannon-notif-title">CANNON FIRE</div>
+    <div class="cannon-notif-subtitle">A tribute has been eliminated from the arena</div>
+    <hr class="cannon-notif-divider">
+    <div id="cannonTributeList"></div>
+    <div style="margin-top:14px;font-size:12px;color:var(--text-dim);font-style:italic;font-family:'Crimson Pro',serif;">
+      The Capitol mourns... and celebrates.
+    </div>
+    <button class="cannon-notif-close" onclick="document.getElementById('cannonOverlay').classList.remove('visible')">DISMISS</button>
+  </div>
+</div>
+
+<audio id="cannonAudio" src="cannon.mp3" preload="auto"></audio>
+
+<!-- CENTRE NOTIFICATION MODAL -->
+<div class="cannon-overlay" id="centreNotifOverlay" style="z-index:10001;">
+  <div class="cannon-notification" style="max-width:480px;">
+    <div id="centreNotifBar" style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);border-radius:4px 4px 0 0;"></div>
+    <div id="centreNotifTitle" style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:16px;padding-top:4px;"></div>
+    <div id="centreNotifBody" style="font-family:'Crimson Pro',serif;font-size:16px;color:var(--text-secondary);line-height:1.7;margin-bottom:20px;"></div>
+    <button class="cannon-notif-close" onclick="closeCentreNotification()" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">ACKNOWLEDGE</button>
+  </div>
+</div>
+
+<!-- WAITING SCREEN (shown until admin starts games) -->
+<div id="waitingScreen" style="position:fixed;inset:0;background:#070707;z-index:5000;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;padding:40px;">
+    <div style="font-size:9px;font-family:'Cinzel',serif;letter-spacing:5px;color:#7A612A;margin-bottom:20px;">◆ RESTRICTED ACCESS ◆</div>
+    <img src="capitol-seal.webp" alt="Capitol Seal" style="width:140px;height:auto;display:block;margin:0 auto 16px;filter:drop-shadow(0 0 30px rgba(201,168,76,0.4));" />
+    <div style="font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:#C9A84C;letter-spacing:4px;margin-bottom:8px;">THE 100TH HUNGER GAMES</div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#7A612A;margin-bottom:36px;">5TH QUINQUENNIAL QUELL</div>
+    <div style="border:1px solid rgba(201,168,76,0.25);border-radius:4px;padding:28px 48px;background:rgba(201,168,76,0.04);max-width:480px;margin:0 auto 24px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;">
+        <div style="width:8px;height:8px;background:#FF8C00;border-radius:50%;animation:pulse 1.2s infinite;flex-shrink:0;"></div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:#FF8C00;">STANDBY — AWAITING GAMEMAKERS</div>
+      </div>
+      <div style="font-family:'Crimson Pro',serif;font-size:17px;color:#A89060;line-height:1.7;font-style:italic;">
+        The arena is being prepared.<br>The 100th Hunger Games will begin shortly.
+      </div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(201,168,76,0.15);font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:#5A4A30;">
+        Logged in as <span id="waitingName" style="color:#C9A84C;"></span>
+      </div>
+    </div>
+    <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#5A4A30;">PANEM ET CIRCENSES · ANNO CENTESIMO · GLORY TO THE CAPITOL</div>
+  </div>
+</div>
+
+<!-- MAIN APP (hidden until games start) -->
+<div id="mainAppContent" style="display:none;flex-direction:column;flex:1;min-height:0;position:fixed;inset:0;z-index:1;">
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-logo" style="display:flex;align-items:center;gap:8px;"><img src="capitol-seal.webp" alt="" style="width:22px;height:auto;opacity:0.85;" /> THE 100TH HUNGER GAMES · 5TH QUINQUENNIAL QUELL</div>
+  <div class="top-live"><div class="pulse-dot"></div>LIVE</div>
+  <div id="fbStatus" style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;color:var(--text-dim);padding:3px 8px;border:1px solid var(--border);border-radius:2px;">⟳ connecting</div>
+  <div class="top-user">
+    <span class="top-user-name" id="topUserName">—</span>
+    <span class="top-credits" id="topCredits">— ₡</span>
+  </div>
+  <a href="public/projector.html" target="_blank" style="background:rgba(201,168,76,0.1);border:1px solid var(--border-mid);color:var(--gold);padding:5px 12px;border-radius:3px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;text-decoration:none;white-space:nowrap;"><i class="ti ti-device-tv" style="margin-right:4px;"></i>PROJECTOR</a> <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> EXIT</button>
+</div>
+
+<!-- MAIN GRID -->
+<div class="app-body">
+
+  <!-- ── COL 1: LIVE FEED + TRIBUTES ── -->
+  <div style="display:flex;flex-direction:column;gap:1px;background:var(--border);overflow:hidden;">
+
+    <!-- Live Feed Panel -->
+    <div class="panel" style="flex:1.2;min-height:0;">
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-chip">
+          <div class="stat-num" id="statAlive">24</div>
+          <div class="stat-label">Alive</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-num" id="statDead" style="color:var(--danger-text)">0</div>
+          <div class="stat-label">Fallen</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-num" id="statDay" style="color:var(--info-text)">1</div>
+          <div class="stat-label">Day</div>
+        </div>
+      </div>
+
+      <div class="panel-header">
+        <div class="panel-title"><i class="ti ti-antenna" aria-hidden="true"></i> Live Arena Feed</div>
+        <div style="font-size:9px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px" id="arenaDay">Day 1</div>
+      </div>
+      <div class="panel-body" id="liveFeed">
+        <div class="empty-state">Awaiting arena broadcast...</div>
+      </div>
+    </div>
+
+    <!-- Tribute Tracker Panel -->
+    <div class="panel" style="flex:1;min-height:0;">
+      <div class="panel-header">
+        <div class="panel-title"><i class="ti ti-users" aria-hidden="true"></i> Tribute Tracker — 100th Games</div>
+        <div style="font-size:9px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px">12 Districts · 24 Tributes</div>
+      </div>
+      <div style="overflow-y:auto;flex:1;">
+        <div class="tribute-grid" id="tributeGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COL 2: SPONSORSHIP + VOTING ── -->
+  <div class="panel">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('sponsor',this)">Sponsorship</button>
+      <button class="tab-btn" onclick="switchTab('vote',this)">Arena Votes</button>
+      <button class="tab-btn" onclick="switchTab('trade',this)">Trade Credits</button>
+    </div>
+
+    <!-- SPONSORSHIP TAB -->
+    <div class="tab-content visible" id="tab-sponsor">
+      <div class="sponsor-header">
+        <div class="sponsor-credits-display">
+          <i class="ti ti-coin" aria-hidden="true"></i>
+          <span>Your Credits: <strong id="creditsDisplay">—</strong> ₡</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px">SELECT TRIBUTE THEN ITEM</div>
+      </div>
+
+      <div style="padding:10px 12px 6px;flex-shrink:0;">
+        <label class="form-label" style="margin-bottom:5px;">SEND ITEM TO TRIBUTE</label>
+        <select id="sponsorTributeSelect" style="width:100%;background:var(--dark-3);border:1px solid var(--border);color:var(--text-primary);font-family:'Crimson Pro',serif;font-size:13px;padding:7px 10px;border-radius:3px;outline:none;margin-bottom:4px;">
+          <option value="">— Select a tribute —</option>
+        </select>
+      </div>
+
+      <div class="panel-body sponsor-grid" id="sponsorItemList"></div>
+    </div>
+
+    <!-- VOTING TAB -->
+    <div class="tab-content" id="tab-vote">
+      <div class="panel-body" id="votePanel">
+        <div class="vote-closed">
+          <i class="ti ti-hourglass" style="font-size:24px;color:var(--text-dim);display:block;margin-bottom:8px;" aria-hidden="true"></i>
+          No active votes at this time.<br>The Gamemakers will announce when voting opens.
+        </div>
+      </div>
+    </div>
+
+    <!-- TRADE CREDITS TAB -->
+    <div class="tab-content" id="tab-trade">
+      <div class="panel-body">
+        <div class="trade-form">
+          <div class="trade-title">⚜ TRANSFER CREDITS TO ANOTHER DELEGATE</div>
+          <div class="trade-row">
+            <div class="trade-group">
+              <label class="trade-label">RECIPIENT</label>
+              <select class="trade-select" id="tradeRecipient"></select>
+            </div>
+            <div class="trade-group" style="max-width:90px;">
+              <label class="trade-label">AMOUNT (₡)</label>
+              <input class="trade-input" type="number" id="tradeAmount" min="1" placeholder="0" />
+            </div>
+            <button class="trade-btn" onclick="executeTrade()">TRANSFER</button>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--text-dim);font-style:italic;">
+            All credit transfers are logged and visible to Crisis Staff.
+          </div>
+        </div>
+
+        <div id="tradeHistory" style="padding:0 12px;">
+          <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;">TRANSFER HISTORY</div>
+          <div class="empty-state" id="tradeHistoryEmpty">No transfers recorded.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COL 3: COMMUNICATIONS ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title"><i class="ti ti-message-circle" aria-hidden="true"></i> Communications</div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchCommsTab('messages',this)">Messages</button>
+      <button class="tab-btn" onclick="switchCommsTab('crisis',this)">Crisis Notes</button>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="tab-content visible" id="comms-messages" style="flex-direction:column;">
+      <div class="msg-list" id="msgList">
+        <div class="msg-bubble crisis-official">
+          <div class="msg-sender crisis-sender">⚡ Crisis Staff</div>
+          Welcome to the 100th Hunger Games. The Quell has begun. All communications are monitored by the Capitol.
+        </div>
+      </div>
+      <div class="msg-input-area">
+        <div class="recipient-row">
+          <span class="recipient-label">TO:</span>
+          <select class="recipient-select" id="msgRecipient">
+            <option value="crisis_staff">⚡ Crisis Staff</option>
+            <option value="all">📢 All Delegates (Broadcast)</option>
+            <option value="aurelius_voss">Aurelius Voss</option>
+            <option value="octavia_sterling">Octavia Sterling</option>
+            <option value="cassian_vire">Cassian Vire</option>
+            <option value="valentina_crest">Valentina Crest</option>
+            <option value="lucius_draven">Lucius Draven</option>
+            <option value="aurelia_fawn">Aurelia Fawn</option>
+            <option value="magnus_halberd">Magnus Halberd</option>
+            <option value="celestia_wren">Celestia Wren</option>
+            <option value="tiberius_vale">Tiberius Vale</option>
+            <option value="seraphina_lux">Seraphina Lux</option>
+            <option value="atticus_crane">Atticus Crane</option>
+            <option value="vesper_montclair">Vesper Montclair</option>
+            <option value="caius_evermont">Caius Evermont</option>
+            <option value="ophelia_sloane">Ophelia Sloane</option>
+            <option value="dorian_golding">Dorian Golding</option>
+            <option value="lavinia_rosehart">Lavinia Rosehart</option>
+            <option value="maximus_argent">Maximus Argent</option>
+            <option value="isolde_vesper">Isolde Vesper</option>
+            <option value="corvin_blackthorne">Corvin Blackthorne</option>
+            <option value="portia_bellamy">Portia Bellamy</option>
+            <option value="hadrian_ashcroft">Hadrian Ashcroft</option>
+            <option value="callista_marrow">Callista Marrow</option>
+            <option value="orion_lockwood">Orion Lockwood</option>
+            <option value="cornelia_plume">Cornelia Plume</option>
+          </select>
+        </div>
+        <div class="msg-row">
+          <textarea class="msg-textarea" id="msgText" placeholder="Compose your message..."></textarea>
+          <button class="send-btn" onclick="sendMessage()">SEND<br><i class="ti ti-send" style="font-size:14px"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRISIS NOTES -->
+    <div class="tab-content" id="comms-crisis" style="flex-direction:column;">
+      <div class="msg-list" id="crisisNoteHistory">
+        <div class="msg-bubble crisis-official">
+          <div class="msg-sender crisis-sender">⚡ Crisis Staff</div>
+          Submit crisis directives here. Notes go directly to Gamemakers for adjudication. Include your requested action, target tribute (if applicable), and justification.
+        </div>
+      </div>
+      <div class="crisis-form">
+        <div class="crisis-form-title">⚡ SUBMIT CRISIS DIRECTIVE</div>
+        <textarea class="crisis-textarea" id="crisisNoteText" placeholder="Describe your crisis action, sponsor request, political directive, or intelligence operation..."></textarea>
+        <div class="crisis-form-row">
+          <button class="crisis-submit-btn" onclick="submitCrisisNote()">
+            <i class="ti ti-send"></i> SUBMIT TO GAMEMAKERS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SPONSOR MODAL -->
+<div class="modal-overlay" id="sponsorModal" style="display:none;">
+  <div class="modal">
+    <div class="modal-title">⚜ CONFIRM SPONSORSHIP</div>
+    <div id="sponsorModalBody" style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn cancel" onclick="closeModal()">CANCEL</button>
+      <button class="modal-btn confirm" id="sponsorModalConfirm">CONFIRM SEND</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end mainAppContent -->
+
+<script type="module" src="js/delegate.js"></script>
+</body>
+</html>

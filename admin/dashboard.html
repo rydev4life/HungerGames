@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gamemaker Dashboard — 100th Hunger Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="../css/main.css">
+<style>
+  body, html { height:100%; overflow:hidden; }
+  .admin-wrap { display:flex; flex-direction:column; height:100vh; }
+  .admin-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 1fr 280px;
+    gap: 1px;
+    background: var(--border);
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .col { display:flex; flex-direction:column; gap:1px; background:var(--border); overflow:hidden; min-height:0; }
+  .pane { background:var(--dark-1); display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+  .pane.flex1 { flex:1; }
+  .pane.flex2 { flex:2; }
+  .pane-hdr { padding:8px 14px; background:var(--dark-2); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .pane-title { font-family:'Cinzel',serif; font-size:9px; letter-spacing:2px; color:var(--gold); display:flex; align-items:center; gap:7px; }
+  .pane-body { flex:1; overflow-y:auto; padding:10px 12px; scrollbar-width:thin; scrollbar-color:var(--gold-dim) transparent; }
+  .pane-foot { padding:8px 12px; border-top:1px solid var(--border); background:var(--dark-2); flex-shrink:0; }
+
+  textarea, select, input { font-family:'Crimson Pro',serif; }
+
+  .abtn { padding:5px 12px; border-radius:3px; font-family:'Cinzel',serif; font-size:8px; letter-spacing:1px; cursor:pointer; border:1px solid; transition:all 0.2s; white-space:nowrap; }
+  .abtn.red   { background:rgba(139,26,26,.2);   border-color:rgba(192,57,43,.4);   color:var(--danger-text); }
+  .abtn.red:hover   { background:rgba(139,26,26,.4); }
+  .abtn.gold  { background:rgba(201,168,76,.1);  border-color:var(--border-mid);    color:var(--gold); }
+  .abtn.gold:hover  { background:rgba(201,168,76,.2); }
+  .abtn.green { background:rgba(111,207,151,.1); border-color:rgba(111,207,151,.3); color:var(--success-text); }
+  .abtn.green:hover { background:rgba(111,207,151,.2); }
+  .abtn.orange{ background:rgba(255,140,0,.1);   border-color:rgba(255,140,0,.3);   color:var(--orange); }
+  .abtn.orange:hover{ background:rgba(255,140,0,.2); }
+  .abtn.big   { padding:10px; width:100%; font-size:10px; letter-spacing:2px; }
+  .abtn:disabled { opacity:.4; cursor:not-allowed; }
+
+  .aselect, .ainput, .atextarea {
+    background:var(--dark-3); border:1px solid var(--border); color:var(--text-primary);
+    font-family:'Crimson Pro',serif; font-size:13px; padding:6px 9px;
+    border-radius:3px; outline:none; width:100%;
+  }
+  .aselect:focus, .ainput:focus, .atextarea:focus { border-color:var(--gold); }
+  .atextarea { resize:none; line-height:1.4; }
+
+  .frow { display:flex; gap:6px; align-items:flex-end; flex-wrap:wrap; margin-bottom:8px; }
+  .fgroup { display:flex; flex-direction:column; gap:3px; flex:1; min-width:80px; }
+  .flabel { font-family:'Cinzel',serif; font-size:8px; color:var(--text-dim); letter-spacing:1px; }
+
+  .note-card { background:var(--dark-2); border:1px solid var(--border); border-radius:3px; padding:10px 12px; margin-bottom:7px; animation:fadeSlide .3s ease; }
+  .note-card.unread { border-left:3px solid var(--orange); }
+  .note-card.resolved { opacity:.55; }
+  .note-meta { display:flex; gap:8px; align-items:center; margin-bottom:5px; flex-wrap:wrap; }
+  .note-from { font-family:'Cinzel',serif; font-size:9px; letter-spacing:1px; color:var(--gold); }
+  .note-time { font-size:10px; color:var(--text-dim); margin-left:auto; }
+  .note-text { font-size:13px; color:var(--text-primary); line-height:1.5; margin-bottom:7px; }
+  .note-actions { display:flex; gap:5px; flex-wrap:wrap; }
+
+  .msg-filter-btn { padding:3px 9px; border-radius:3px; font-family:'Cinzel',serif; font-size:8px; letter-spacing:1px; cursor:pointer; border:1px solid var(--border); background:none; color:var(--text-dim); transition:all .2s; }
+  .msg-filter-btn.active { background:rgba(201,168,76,.15); border-color:var(--border-bright); color:var(--gold); }
+
+  .session-row { display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .online-dot { width:7px; height:7px; background:var(--success-text); border-radius:50%; flex-shrink:0; animation:pulse 2s infinite; }
+
+  .credit-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border); font-size:12px; }
+
+  @keyframes fadeSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+  /* GAME STATUS BANNER */
+  #gameStatusBanner {
+    padding:8px 16px; text-align:center; font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px;
+    border-bottom:1px solid; flex-shrink:0;
+  }
+  #gameStatusBanner.waiting {
+    background:rgba(255,140,0,.1); color:var(--orange); border-color:rgba(255,140,0,.3);
+  }
+  #gameStatusBanner.started {
+    background:rgba(46,125,79,.1); color:var(--success-text); border-color:rgba(111,207,151,.2);
+  }
+</style>
+</head>
+<body>
+<div class="admin-wrap">
+
+<div class="cannon-flash" id="cannonFlash"></div>
+<div class="toast-container" id="toastContainer"></div>
+<audio id="cannonAudio" src="../cannon.mp3" preload="auto"></audio>
+
+<!-- CANNON OVERLAY -->
+<div class="cannon-overlay" id="cannonOverlay">
+  <div class="cannon-notification">
+    <div class="cannon-notif-seal">◆ CAPITOL BROADCAST ◆</div>
+    <span class="cannon-notif-icon">💀</span>
+    <div class="cannon-notif-title">CANNON FIRE</div>
+    <div class="cannon-notif-subtitle">A tribute has been eliminated</div>
+    <hr class="cannon-notif-divider">
+    <div id="cannonTributeList"></div>
+    <button class="cannon-notif-close" onclick="closeCannonOverlay()">DISMISS</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar" style="background:rgba(139,26,26,.15);border-bottom:1px solid rgba(192,57,43,.4);flex-shrink:0;">
+  <div class="top-logo" style="color:var(--danger-text);display:flex;align-items:center;gap:8px;"><img src="../capitol-seal.webp" alt="" style="width:22px;height:auto;opacity:0.7;filter:hue-rotate(330deg);" /> ⚡ GAMEMAKER COMMAND — 100TH HUNGER GAMES</div>
+  <div class="top-live"><div class="pulse-dot"></div>LIVE CONTROL</div>
+  <a href="../public/projector.html" target="_blank" class="abtn gold" style="font-size:9px;padding:5px 12px;text-decoration:none;"><i class="ti ti-device-tv"></i> PROJECTOR</a>
+  <button class="logout-btn" onclick="window.location.href='../index.html'"><i class="ti ti-logout"></i> EXIT</button>
+</div>
+
+<!-- FIREBASE STATUS -->
+<div id="firebaseStatus" style="padding:6px 16px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;color:var(--success-text);text-align:center;background:rgba(46,125,79,.1);border-bottom:1px solid rgba(111,207,151,.15);flex-shrink:0;">
+  ⟳ Connecting to Firebase...
+</div>
+
+<!-- GAME STATUS BANNER -->
+<div id="gameStatusBanner" class="waiting">
+  ⏳ GAMES NOT STARTED — Delegates see the waiting screen
+</div>
+
+<!-- QUICK ACTION BAR -->
+<div class="admin-bar" style="flex-shrink:0;">
+  <span style="font-family:'Cinzel',serif;font-size:9px;color:var(--danger-text);letter-spacing:2px;margin-right:4px;">QUICK:</span>
+  <button class="abtn red" onclick="firecannon()"><i class="ti ti-bomb"></i> Fire Cannon</button>
+  <button class="abtn gold" onclick="advanceDay()"><i class="ti ti-sun"></i> Advance Day</button>
+  <button class="abtn orange" onclick="openVoteSection()"><i class="ti ti-chart-bar"></i> Open Vote</button>
+  <button class="abtn green" onclick="closeActiveVote()"><i class="ti ti-lock"></i> Close Vote</button>
+  <button class="abtn gold" onclick="cleanFeed()"><i class="ti ti-trash"></i> Clean Feed</button> <button class="abtn red" onclick="initDatabase()" style="margin-left:auto;"><i class="ti ti-refresh"></i> RESET ALL</button>
+</div>
+
+<!-- MAIN GRID -->
+<div class="admin-grid">
+
+  <!-- COL 1: GAME CONTROL + TRIBUTE MANAGER -->
+  <div class="col">
+
+    <!-- GAME CONTROL -->
+    <div class="pane" style="flex:none;">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-player-play"></i> GAME CONTROL</div>
+      </div>
+      <div style="padding:12px;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="abtn green big" id="startGameBtn" onclick="startGame()">
+            ⚜ START THE 100TH HUNGER GAMES
+          </button>
+          <button class="abtn red big" id="stopGameBtn" onclick="stopGame()" style="display:none;">
+            ⏸ PAUSE / END GAMES
+          </button>
+          <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;flex-direction:column;gap:6px;">
+            <div class="frow" style="margin-bottom:0;">
+              <div class="fgroup">
+                <label class="flabel">UPDATE TYPE</label>
+                <select class="aselect" id="feedType">
+                  <option value="event">Event</option>
+                  <option value="death">Death / Cannon</option>
+                  <option value="alliance">Alliance</option>
+                  <option value="sponsor">Sponsor</option>
+                  <option value="crisis">Crisis / Mutation</option>
+                  <option value="district">District Unrest</option>
+                  <option value="political">Capitol Political</option>
+                </select>
+              </div>
+              <div class="fgroup" style="max-width:110px;">
+                <label class="flabel">TIMESTAMP</label>
+                <input class="ainput" id="feedTime" placeholder="Day 1, 12:00" />
+              </div>
+            </div>
+            <textarea class="atextarea" id="feedText" rows="3" placeholder="Arena update text... (HTML <strong> allowed)"></textarea>
+            <button class="abtn gold big" onclick="pushFeedUpdate()"><i class="ti ti-send"></i> BROADCAST TO ALL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE FEED MANAGER -->
+    <div class="pane flex2">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-list"></i> LIVE FEED — MANAGE</div>
+        <span style="font-size:9px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px;">Click ✕ to remove any item</span>
+      </div>
+      <div class="pane-body" id="adminFeedPanel">
+        <div class="empty-state">No feed items yet.</div>
+      </div>
+    </div>
+
+    <!-- TRIBUTE MANAGER -->
+    <div class="pane flex2">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-users"></i> TRIBUTE MANAGER</div>
+      </div>
+      <div class="pane-body">
+        <div class="frow">
+          <div class="fgroup">
+            <label class="flabel">TRIBUTE</label>
+            <select class="aselect" id="tributeSelect"></select>
+          </div>
+          <div class="fgroup" style="max-width:65px;">
+            <label class="flabel">HP</label>
+            <input class="ainput" type="number" id="tributeHP" min="0" max="100" placeholder="100" />
+          </div>
+        </div>
+        <div class="frow">
+          <input class="ainput" id="tributeStatus" placeholder="Status update..." />
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="abtn gold" onclick="updateTribute()"><i class="ti ti-edit"></i> Update</button>
+          <button class="abtn red" onclick="killTribute()"><i class="ti ti-skull"></i> Mark Fallen</button>
+          <button class="abtn green" onclick="healTribute()"><i class="ti ti-heart"></i> Full HP</button>
+        </div>
+        <div id="tributeAdminList"></div>
+      </div>
+    </div>
+
+    <!-- FEED PREVIEW -->
+    <div class="pane flex1">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-antenna"></i> LIVE FEED PREVIEW</div>
+        <span style="font-size:9px;color:var(--success-text);font-family:'Cinzel',serif;letter-spacing:1px;">LIVE</span>
+      </div>
+      <div class="pane-body" id="adminFeedPreview">
+        <div class="empty-state">No feed items yet.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COL 2: CRISIS NOTE INBOX -->
+  <div class="col">
+    <div class="pane flex1">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-mail"></i> CRISIS NOTE INBOX</div>
+        <span id="unreadBadge" style="background:rgba(255,140,0,.2);border:1px solid rgba(255,140,0,.4);color:var(--orange);font-family:'Cinzel',serif;font-size:9px;padding:2px 8px;border-radius:2px;display:none;">UNREAD</span>
+      </div>
+      <div class="pane-body" id="crisisInbox">
+        <div class="empty-state">No crisis notes yet.</div>
+      </div>
+    </div>
+
+    <!-- SEND MESSAGE -->
+    <div class="pane" style="flex:none;">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-message-circle"></i> SEND OFFICIAL MESSAGE</div>
+      </div>
+      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:7px;">
+        <select class="aselect" id="adminMsgTo">
+          <option value="all">📢 All Delegates (Broadcast)</option>
+          <option value="aurelius_voss">Aurelius Voss</option>
+          <option value="octavia_sterling">Octavia Sterling</option>
+          <option value="cassian_vire">Cassian Vire</option>
+          <option value="valentina_crest">Valentina Crest</option>
+          <option value="lucius_draven">Lucius Draven</option>
+          <option value="aurelia_fawn">Aurelia Fawn</option>
+          <option value="magnus_halberd">Magnus Halberd</option>
+          <option value="celestia_wren">Celestia Wren</option>
+          <option value="tiberius_vale">Tiberius Vale</option>
+          <option value="seraphina_lux">Seraphina Lux</option>
+          <option value="atticus_crane">Atticus Crane</option>
+          <option value="vesper_montclair">Vesper Montclair</option>
+          <option value="caius_evermont">Caius Evermont</option>
+          <option value="ophelia_sloane">Ophelia Sloane</option>
+          <option value="dorian_golding">Dorian Golding</option>
+          <option value="lavinia_rosehart">Lavinia Rosehart</option>
+          <option value="maximus_argent">Maximus Argent</option>
+          <option value="isolde_vesper">Isolde Vesper</option>
+          <option value="corvin_blackthorne">Corvin Blackthorne</option>
+          <option value="portia_bellamy">Portia Bellamy</option>
+          <option value="hadrian_ashcroft">Hadrian Ashcroft</option>
+          <option value="callista_marrow">Callista Marrow</option>
+          <option value="orion_lockwood">Orion Lockwood</option>
+          <option value="cornelia_plume">Cornelia Plume</option>
+        </select>
+        <textarea class="atextarea" id="adminMsgText" rows="3" placeholder="Official message..."></textarea>
+        <button class="abtn orange big" onclick="sendAdminMessage()"><i class="ti ti-send"></i> SEND AS CRISIS STAFF</button>
+      </div>
+    </div>
+
+    <!-- VOTE BUILDER -->
+    <div class="pane" style="flex:none;">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-chart-bar"></i> ARENA VOTE BUILDER</div>
+      </div>
+      <div id="voteSection" style="padding:10px 12px;display:flex;flex-direction:column;gap:6px;">
+        <input class="ainput" id="voteTitle" placeholder="Vote title..." />
+        <textarea class="atextarea" id="voteDesc" rows="2" placeholder="Description / stakes..."></textarea>
+        <input class="ainput" id="voteOpt1" placeholder="Option A..." />
+        <input class="ainput" id="voteOpt2" placeholder="Option B..." />
+        <input class="ainput" id="voteOpt3" placeholder="Option C (optional)..." />
+        <input class="ainput" id="voteOpt4" placeholder="Option D (optional)..." />
+        <button class="abtn orange big" onclick="launchVote()"><i class="ti ti-chart-bar"></i> OPEN VOTE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COL 3: ALL MESSAGES + ACTIVITY LOG -->
+  <div class="col">
+
+    <!-- ALL MESSAGES -->
+    <div class="pane flex1">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-eye"></i> ALL MESSAGES</div>
+      </div>
+      <div style="padding:6px 10px;border-bottom:1px solid var(--border);background:var(--dark-2);display:flex;gap:5px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
+        <button class="msg-filter-btn active" onclick="setMsgFilter('all',this)">ALL</button>
+        <button class="msg-filter-btn" onclick="setMsgFilter('crisis_staff',this)">TO STAFF</button>
+        <select id="delegateFilterSelect" class="aselect" style="width:auto;font-size:11px;padding:3px 6px;flex:1;" onchange="filterByDelegate()">
+          <option value="">Filter by delegate...</option>
+        </select>
+      </div>
+      <div class="pane-body" id="allMessagesPanel">
+        <div class="empty-state">No messages yet.</div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY LOG -->
+    <div class="pane flex1">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-activity"></i> ACTIVITY LOG</div>
+        <span style="font-size:9px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px;">Sponsors · Trades · Votes</span>
+      </div>
+      <div class="pane-body" id="activityLogPanel">
+        <div class="empty-state">No activity yet.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COL 4: ONLINE NOW + CREDITS -->
+  <div class="col">
+
+    <!-- ONLINE NOW -->
+    <div class="pane" style="flex:none;min-height:120px;">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-wifi"></i> ONLINE NOW</div>
+        <span id="onlineCount" style="font-family:'Cinzel',serif;font-size:9px;color:var(--success-text);letter-spacing:1px;">0 online</span>
+      </div>
+      <div class="pane-body" id="activeSessionsPanel" style="padding:6px 12px;">
+        <div class="empty-state" style="padding:8px 0;">No delegates online.</div>
+      </div>
+    </div>
+
+    <!-- DELEGATE CREDITS -->
+    <div class="pane flex2">
+      <div class="pane-hdr">
+        <div class="pane-title"><i class="ti ti-coin"></i> DELEGATE CREDITS</div>
+      </div>
+      <div style="padding:7px 10px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
+        <select class="aselect" id="creditDelegate" style="flex:1;font-size:11px;padding:4px 6px;"></select>
+        <input class="ainput" type="number" id="creditAmount" placeholder="₡" style="width:55px;padding:4px 6px;" />
+        <button class="abtn gold" onclick="adjustCredits(1)" style="padding:4px 8px;">+</button>
+        <button class="abtn red" onclick="adjustCredits(-1)" style="padding:4px 8px;">−</button>
+      </div>
+      <div class="pane-body" id="delegateCreditsPanel">
+        <div class="empty-state">Loading credits...</div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- end admin-grid -->
+</div><!-- end admin-wrap -->
+
+<script type="module" src="../js/admin.js"></script>
+</body>
+</html>

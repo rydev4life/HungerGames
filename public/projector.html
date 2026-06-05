@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitol Projector — 100th Hunger Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-dim: #7A612A;
+  --crimson-bright: #C0392B;
+  --dark-0: #060606;
+  --dark-1: #0E0E0E;
+  --dark-2: #161616;
+  --dark-3: #1E1E1E;
+  --dark-4: #272727;
+  --border: rgba(201,168,76,0.18);
+  --border-mid: rgba(201,168,76,0.35);
+  --border-bright: rgba(201,168,76,0.6);
+  --text-primary: #E8D9B5;
+  --text-secondary: #A89060;
+  --text-dim: #5A4A30;
+  --success-text: #6FCF97;
+  --danger-text: #FF6B6B;
+  --info-text: #74B9E8;
+  --orange: #FF8C00;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--dark-0); color: var(--text-primary); font-family: 'Crimson Pro', Georgia, serif; overflow: hidden; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+/* ── TOP BAR ── */
+.proj-top {
+  height: 52px;
+  background: var(--dark-1);
+  border-bottom: 1px solid var(--border-bright);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.proj-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--gold);
+}
+
+.proj-stats {
+  display: flex;
+  gap: 0;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.proj-stat {
+  padding: 4px 18px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Cinzel', serif;
+}
+
+.proj-stat:last-child { border-right: none; }
+
+.proj-stat-num {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.proj-stat-num.dead { color: var(--danger-text); }
+.proj-stat-num.day { color: var(--info-text); }
+
+.proj-stat-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.live-dot {
+  width: 8px; height: 8px;
+  background: var(--danger-text);
+  border-radius: 50%;
+  animation: pulse 1.2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)} }
+
+.fullscreen-btn {
+  background: rgba(201,168,76,0.1);
+  border: 1px solid var(--border-mid);
+  color: var(--gold);
+  padding: 5px 14px;
+  border-radius: 3px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.fullscreen-btn:hover { background: rgba(201,168,76,0.2); }
+
+/* ── MAIN GRID ── */
+.proj-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: calc(100vh - 52px);
+  gap: 1px;
+  background: var(--border);
+}
+
+/* ── PANELS ── */
+.proj-panel {
+  background: var(--dark-1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.proj-panel-header {
+  padding: 10px 20px;
+  background: var(--dark-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.proj-panel-title {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── FEED ── */
+.proj-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.proj-feed-item {
+  padding: 12px 16px 12px 18px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--dark-2);
+  position: relative;
+  overflow: hidden;
+  animation: feedIn 0.5s ease;
+  flex-shrink: 0;
+  min-height: 70px;
+}
+
+@keyframes feedIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+.proj-feed-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.proj-feed-item.death::before   { background: var(--crimson-bright); }
+.proj-feed-item.alliance::before { background: var(--gold); }
+.proj-feed-item.event::before   { background: var(--info-text); }
+.proj-feed-item.sponsor::before  { background: var(--success-text); }
+.proj-feed-item.crisis::before   { background: var(--orange); }
+.proj-feed-item.district::before { background: #9B59B6; }
+.proj-feed-item.political::before{ background: #E91E63; }
+
+.proj-feed-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.proj-feed-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.badge-death    { background:rgba(139,26,26,.35);  color:var(--danger-text);  border:1px solid rgba(192,57,43,.35); }
+.badge-alliance { background:rgba(201,168,76,.12); color:var(--gold);         border:1px solid var(--border); }
+.badge-event    { background:rgba(116,185,232,.1); color:var(--info-text);    border:1px solid rgba(116,185,232,.25); }
+.badge-sponsor  { background:rgba(111,207,151,.1); color:var(--success-text); border:1px solid rgba(111,207,151,.25); }
+.badge-crisis   { background:rgba(255,140,0,.1);   color:var(--orange);       border:1px solid rgba(255,140,0,.3); }
+.badge-district { background:rgba(155,89,182,.1);  color:#C39BD3;             border:1px solid rgba(155,89,182,.3); }
+.badge-political{ background:rgba(233,30,99,.1);   color:#F48FB1;             border:1px solid rgba(233,30,99,.3); }
+.badge-announcement { background:rgba(201,168,76,.2); color:#E8C96A;          border:1px solid var(--border-mid); }
+
+.proj-feed-time {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: auto;
+  font-family: 'Cinzel', serif;
+}
+
+.proj-feed-text {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  word-break: break-word;
+  min-height: 1.55em;
+}
+
+.proj-feed-text strong { color: var(--gold); font-weight: 600; }
+
+/* ── TRIBUTE GRID ── */
+.proj-tribute-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+.proj-tribute-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.proj-tribute-card {
+  background: var(--dark-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 12px;
+  transition: border-color 0.3s;
+}
+
+.proj-tribute-card.dead {
+  opacity: 0.35;
+  filter: grayscale(0.7);
+}
+
+.proj-tribute-district {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  margin-bottom: 2px;
+}
+
+.proj-tribute-name {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.proj-tribute-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  min-height: 30px;
+}
+
+.proj-hp-bar {
+  height: 3px;
+  background: var(--dark-4);
+  border-radius: 2px;
+  margin-top: 7px;
+  overflow: hidden;
+}
+
+.proj-hp-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1.5s ease;
+}
+
+.hp-high { background: var(--success-text); }
+.hp-mid  { background: var(--gold); }
+.hp-low  { background: var(--danger-text); }
+
+/* ── CANNON OVERLAY ── */
+.cannon-flash {
+  position: fixed; inset: 0;
+  background: rgba(139,26,26,0.2);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9998;
+}
+.cannon-flash.boom { animation: cannonBoom 1.2s ease forwards; }
+@keyframes cannonBoom { 0%{opacity:0} 15%{opacity:1} 100%{opacity:0} }
+
+.cannon-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.cannon-overlay.visible { opacity: 1; pointer-events: all; }
+
+.cannon-notification {
+  background: var(--dark-1);
+  border: 1px solid rgba(192,57,43,0.6);
+  border-radius: 4px;
+  padding: 48px 64px;
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+  animation: notifIn 0.4s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.cannon-notification::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--crimson-bright),transparent);
+}
+@keyframes notifIn { from{opacity:0;transform:scale(0.88) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+.cn-seal { font-family:'Cinzel',serif; font-size:10px; letter-spacing:4px; color:var(--crimson-bright); margin-bottom:18px; }
+.cn-icon { font-size:56px; display:block; margin-bottom:14px; animation:iconPulse 1.5s ease infinite; }
+@keyframes iconPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+.cn-title { font-family:'Cinzel',serif; font-size:28px; font-weight:700; color:var(--danger-text); letter-spacing:5px; margin-bottom:8px; }
+.cn-sub { font-size:14px; color:var(--text-secondary); letter-spacing:2px; font-style:italic; margin-bottom:22px; }
+.cn-divider { border:none; border-top:1px solid rgba(192,57,43,0.3); margin:16px 0; }
+.cn-tribute { font-family:'Cinzel',serif; font-size:20px; color:var(--text-primary); letter-spacing:1px; margin:10px 0; padding:14px 20px; background:rgba(139,26,26,0.15); border:1px solid rgba(192,57,43,0.2); border-radius:3px; }
+.cn-tribute span { display:block; font-size:12px; color:var(--text-dim); letter-spacing:2px; margin-top:4px; font-family:'Crimson Pro',serif; font-style:italic; }
+.cn-close { margin-top:24px; padding:10px 32px; background:rgba(139,26,26,0.2); border:1px solid rgba(192,57,43,0.4); border-radius:3px; color:var(--danger-text); font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px; cursor:pointer; transition:background 0.2s; }
+.cn-close:hover { background:rgba(139,26,26,0.4); }
+</style>
+</head>
+<body>
+
+<div class="cannon-flash" id="cannonFlash"></div>
+<audio id="cannonAudio" src="../cannon.mp3" preload="auto"></audio>
+
+<div class="cannon-overlay" id="cannonOverlay">
+  <div class="cannon-notification">
+    <div class="cn-seal">◆ CAPITOL BROADCAST ◆</div>
+    <span class="cn-icon">💀</span>
+    <div class="cn-title">CANNON FIRE</div>
+    <div class="cn-sub">A tribute has been eliminated from the arena</div>
+    <hr class="cn-divider">
+    <div id="cnTributeList"></div>
+    <div style="margin-top:16px;font-size:13px;color:var(--text-dim);font-style:italic;">The Capitol mourns... and celebrates.</div>
+    <button class="cn-close" onclick="document.getElementById('cannonOverlay').classList.remove('visible')">DISMISS</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="proj-top">
+  <div class="live-dot"></div>
+  <div class="proj-title" style="display:flex;align-items:center;gap:10px;"><img src="../capitol-seal.webp" alt="" style="width:26px;height:auto;opacity:0.9;" /> THE 100TH HUNGER GAMES · 5TH QUINQUENNIAL QUELL</div>
+  <div class="proj-stats">
+    <div class="proj-stat">
+      <div>
+        <div class="proj-stat-num" id="statAlive">24</div>
+        <div class="proj-stat-label">Alive</div>
+      </div>
+    </div>
+    <div class="proj-stat">
+      <div>
+        <div class="proj-stat-num dead" id="statDead">0</div>
+        <div class="proj-stat-label">Fallen</div>
+      </div>
+    </div>
+    <div class="proj-stat">
+      <div>
+        <div class="proj-stat-num day" id="statDay">1</div>
+        <div class="proj-stat-label">Day</div>
+      </div>
+    </div>
+  </div>
+  <button class="fullscreen-btn" onclick="toggleFullscreen()"><i class="ti ti-maximize"></i> FULLSCREEN</button>
+  <button class="fullscreen-btn" onclick="window.close()" style="border-color:rgba(255,107,107,0.3);color:var(--danger-text);">✕ CLOSE</button>
+</div>
+
+<!-- MAIN GRID -->
+<div class="proj-body">
+
+  <!-- LEFT: LIVE FEED -->
+  <div class="proj-panel">
+    <div class="proj-panel-header">
+      <div class="proj-panel-title"><i class="ti ti-antenna" aria-hidden="true"></i> LIVE ARENA FEED</div>
+      <div style="font-size:9px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px;" id="dayLabel">Day 1</div>
+    </div>
+    <div class="proj-feed" id="projFeed">
+      <div style="text-align:center;padding:40px;color:var(--text-dim);font-style:italic;">Awaiting arena broadcast...</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: TRIBUTE TRACKER -->
+  <div class="proj-panel">
+    <div class="proj-panel-header">
+      <div class="proj-panel-title"><i class="ti ti-users" aria-hidden="true"></i> TRIBUTE TRACKER</div>
+      <div style="font-size:9px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px;">12 DISTRICTS · 24 TRIBUTES</div>
+    </div>
+    <div class="proj-tribute-scroll">
+      <div class="proj-tribute-grid" id="projTributeGrid"></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCZpSWAEivu4NAepXVIY2JyeFoBx6mTayA",
+  authDomain: "hunger-games-uns.firebaseapp.com",
+  databaseURL: "https://hunger-games-uns-default-rtdb.firebaseio.com",
+  projectId: "hunger-games-uns",
+  storageBucket: "hunger-games-uns.firebasestorage.app",
+  messagingSenderId: "833806319484",
+  appId: "1:833806319484:web:39b7af0875360e4d4f6ef9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+function fmt(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}
+
+// ── STATS ──
+onValue(ref(db, 'stats'), snap => {
+  if (!snap.exists()) return;
+  const s = snap.val();
+  document.getElementById('statAlive').textContent = s.alive ?? 24;
+  document.getElementById('statDead').textContent = s.dead ?? 0;
+  document.getElementById('statDay').textContent = s.day ?? 1;
+  document.getElementById('dayLabel').textContent = `Day ${s.day ?? 1}`;
+});
+
+// ── LIVE FEED ──
+let projFeedItems = [];
+
+function renderProjFeed() {
+  const feed = document.getElementById('projFeed');
+  if (!feed) return;
+  if (projFeedItems.length === 0) {
+    feed.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-style:italic;">Awaiting arena broadcast...</div>';
+    return;
+  }
+  feed.innerHTML = '';
+  projFeedItems
+    .filter(item => item.text && item.text.trim() !== '')
+    .forEach(item => {
+      const div = document.createElement('div');
+      div.className = `proj-feed-item ${item.type || 'event'}`;
+      div.innerHTML = `
+        <div class="proj-feed-meta">
+          <span class="proj-feed-badge badge-${item.badge||'event'}">${(item.badge||'event').toUpperCase()}</span>
+          <span class="proj-feed-time">${item.time || fmt(item.ts)}</span>
+        </div>
+        <div class="proj-feed-text">${item.text}</div>`;
+      feed.appendChild(div);
+    });
+  if (feed.children.length === 0) {
+    feed.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-style:italic;">Awaiting arena broadcast...</div>';
+  }
+  feed.scrollTop = 0;
+}
+
+onValue(ref(db, 'feed'), snap => {
+  projFeedItems = (snap && snap.exists())
+    ? Object.values(snap.val() || {}).sort((a,b) => (b.ts||0)-(a.ts||0))
+    : [];
+  renderProjFeed();
+});
+
+// ── TRIBUTE TRACKER ──
+const FALLBACK = [
+  {id:"t01",name:"Valeria Apollo",    district:"District 1", hp:100,alive:true,status:"Cornucopia — Career alliance forming"},
+  {id:"t02",name:"Velouro Leo",       district:"District 1", hp:100,alive:true,status:"Cornucopia — Securing weapons cache"},
+  {id:"t03",name:"Brontes Ares",      district:"District 2", hp:100,alive:true,status:"Leading Career alliance"},
+  {id:"t04",name:"Kiyra Kain",        district:"District 2", hp:100,alive:true,status:"Tracking escaping tributes"},
+  {id:"t05",name:"Synrik Orion",      district:"District 3", hp:100,alive:true,status:"Fled north — forest cover"},
+  {id:"t06",name:"Elena Atheniapolos",district:"District 3", hp:100,alive:true,status:"Fled northeast — concealed"},
+  {id:"t07",name:"Corven Tide",       district:"District 4", hp:100,alive:true,status:"Career alliance — near lake"},
+  {id:"t08",name:"Tori Vegah",        district:"District 4", hp:100,alive:true,status:"Career alliance patrol"},
+  {id:"t09",name:"Volti Helios",      district:"District 5", hp:100,alive:true,status:"Fled west — high ground"},
+  {id:"t10",name:"Lyra Solenn",       district:"District 5", hp:100,alive:true,status:"Fled south — seeking water"},
+  {id:"t11",name:"Axel Ode",          district:"District 6", hp:100,alive:true,status:"Fled east — undergrowth"},
+  {id:"t12",name:"Veesuvi Rain",      district:"District 6", hp:100,alive:true,status:"Injured — moving southeast"},
+  {id:"t13",name:"Plutonus Blu",      district:"District 7", hp:100,alive:true,status:"Treetop — observing"},
+  {id:"t14",name:"Mebanis Cades",     district:"District 7", hp:100,alive:true,status:"Forest — gathering resources"},
+  {id:"t15",name:"Odinsos Hemingway", district:"District 8", hp:100,alive:true,status:"Hiding — rocky outcrop"},
+  {id:"t16",name:"Lamina Calow",      district:"District 8", hp:100,alive:true,status:"Moving west — avoiding Careers"},
+  {id:"t17",name:"Anaya Trove",       district:"District 9", hp:100,alive:true,status:"Fled northwest — shelter"},
+  {id:"t18",name:"Claude Alainus",    district:"District 9", hp:100,alive:true,status:"Fled west — grain fields"},
+  {id:"t19",name:"Marvin Narlan",     district:"District 10",hp:100,alive:true,status:"Moving south — open terrain"},
+  {id:"t20",name:"Vanderwall Moon",   district:"District 10",hp:100,alive:true,status:"Fled southwest — concealed"},
+  {id:"t21",name:"Coryo Chambers",    district:"District 11",hp:100,alive:true,status:"Eastern sector — grain fields"},
+  {id:"t22",name:"Sisou Confucias",   district:"District 11",hp:100,alive:true,status:"Treetop — watching boundary"},
+  {id:"t23",name:"Cecelia Kebih",     district:"District 12",hp:100,alive:true,status:"Fled north — riverbank"},
+  {id:"t24",name:"Mauve Plinth",      district:"District 12",hp:100,alive:true,status:"Fled north — moving carefully"},
+];
+
+// Live state — starts as full hardcoded list, patched by Firebase
+let tributeState = FALLBACK.map(t => ({ ...t }));
+
+function renderTributes() {
+  const grid = document.getElementById('projTributeGrid');
+  grid.innerHTML = '';
+  tributeState.forEach(t => {
+    const hp = t.alive ? (t.hp ?? 100) : 0;
+    const hpClass = hp > 65 ? 'hp-high' : hp > 30 ? 'hp-mid' : 'hp-low';
+    const card = document.createElement('div');
+    card.className = `proj-tribute-card${t.alive ? '' : ' dead'}`;
+    card.innerHTML = `
+      <div class="proj-tribute-district">${t.district}</div>
+      <div class="proj-tribute-name">${t.name}</div>
+      <div class="proj-tribute-status">${t.alive
+        ? (t.status || 'Location unknown')
+        : '<span style="color:var(--danger-text);font-style:italic">⚰ Fallen</span>'}</div>
+      <div class="proj-hp-bar"><div class="proj-hp-fill ${hpClass}" style="width:${hp}%"></div></div>`;
+    grid.appendChild(card);
+  });
+}
+
+// Render immediately — no Firebase needed
+renderTributes();
+
+// Patch with live Firebase updates
+onValue(ref(db, 'tributes'), snap => {
+  if (!snap.exists()) return;
+  Object.entries(snap.val() || {}).forEach(([key, d]) => {
+    const idx = tributeState.findIndex(t => t.id === key);
+    if (idx !== -1) tributeState[idx] = { ...tributeState[idx], ...d };
+  });
+  renderTributes();
+});
+
+// ── CANNON EVENT ──
+let lastCannonTs = 0;
+onValue(ref(db, 'cannonEvent'), snap => {
+  if (!snap.exists()) return;
+  const ev = snap.val();
+  if (!ev || !ev.ts || ev.ts <= lastCannonTs) return;
+  if (Date.now() - ev.ts > 10000) { lastCannonTs = ev.ts; return; }
+  lastCannonTs = ev.ts;
+
+  document.getElementById('cannonFlash').classList.add('boom');
+  setTimeout(() => document.getElementById('cannonFlash').classList.remove('boom'), 1200);
+  const audio = document.getElementById('cannonAudio');
+  if (audio) { audio.currentTime = 0; audio.play().catch(()=>{}); }
+
+  const list = document.getElementById('cnTributeList');
+  list.innerHTML = ev.tributeName
+    ? `<div class="cn-tribute">${ev.tributeName}<span>${ev.tributeDistrict||''}</span></div>`
+    : `<div class="cn-tribute">A tribute has fallen<span>See the live feed for details</span></div>`;
+  document.getElementById('cannonOverlay').classList.add('visible');
+});
+
+// ── FULLSCREEN ──
+window.toggleFullscreen = function() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(()=>{});
+  } else {
+    document.exitFullscreen();
+  }
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'F11' || (e.key === 'f' && e.metaKey)) {
+    e.preventDefault();
+    window.toggleFullscreen();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('cannonOverlay').classList.remove('visible');
+  }
+});
+</script>
+</body>
+</html>

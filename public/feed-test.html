@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head><title>Feed Write Test</title></head>
+<body style="background:#111;color:#C9A84C;font-family:monospace;padding:20px;">
+<h2>Firebase Feed Write Test</h2>
+<div id="log"></div>
+<button onclick="testWrite()" style="margin:10px;padding:10px 20px;">TEST WRITE</button>
+<button onclick="testRead()" style="margin:10px;padding:10px 20px;">TEST READ</button>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const cfg = {
+  apiKey: "AIzaSyCZpSWAEivu4NAepXVIY2JyeFoBx6mTayA",
+  authDomain: "hunger-games-uns.firebaseapp.com",
+  databaseURL: "https://hunger-games-uns-default-rtdb.firebaseio.com",
+  projectId: "hunger-games-uns",
+  storageBucket: "hunger-games-uns.firebasestorage.app",
+  messagingSenderId: "833806319484",
+  appId: "1:833806319484:web:39b7af0875360e4d4f6ef9"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(cfg);
+const db = getDatabase(app);
+
+function log(msg, color='#C9A84C') {
+  const div = document.getElementById('log');
+  div.innerHTML += `<div style="color:${color};margin:4px 0;">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+}
+
+window.testWrite = async function() {
+  log('Attempting write to /feed...');
+  try {
+    await push(ref(db, 'feed'), {
+      type: 'event', badge: 'event',
+      text: '<strong>TEST:</strong> Feed write test from diagnostic page.',
+      time: new Date().toLocaleTimeString(),
+      ts: Date.now()
+    });
+    log('✓ WRITE SUCCEEDED — Feed item written', '#6FCF97');
+  } catch(err) {
+    log(`❌ WRITE FAILED: ${err.message}`, '#FF6B6B');
+    log('→ Go to Firebase Console → Realtime Database → Rules → set .read and .write to true', '#FF8C00');
+  }
+};
+
+window.testRead = function() {
+  log('Listening to /feed...');
+  onValue(ref(db, 'feed'), snap => {
+    if (snap.exists()) {
+      const count = Object.keys(snap.val()).length;
+      log(`✓ READ SUCCEEDED — ${count} items in feed`, '#6FCF97');
+    } else {
+      log('Feed is empty (no items yet)', '#FF8C00');
+    }
+  }, err => {
+    log(`❌ READ FAILED: ${err.message}`, '#FF6B6B');
+  });
+};
+
+log('Firebase initialized. Click TEST WRITE to check if writes work.');
+log(`Config: databaseURL = https://hunger-games-uns-default-rtdb.firebaseio.com`);
+</script>
+</body>
+</html>
