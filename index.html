@@ -88,10 +88,42 @@
     <span>·</span>
     <span>ANNO CENTESIMO</span>
     <span>·</span>
-    <span>GLORY TO THE CAPITOL</span>
+    <span onclick="openStaffPortal()" style="cursor:pointer;user-select:none;transition:color 0.3s;" onmouseover="this.style.color='var(--gold-dim)'" onmouseout="this.style.color='var(--text-dim)'">GLORY TO THE CAPITOL</span>
+  </div>
+
+<!-- STAFF PORTAL MODAL -->
+<div id="staffModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--dark-1);border:1px solid var(--border-mid);border-radius:4px;padding:32px 40px;text-align:center;max-width:380px;width:90%;position:relative;">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);border-radius:4px 4px 0 0;"></div>
+    <img src="capitol-seal.webp" alt="" style="width:56px;height:auto;margin:0 auto 14px;display:block;opacity:0.8;" />
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:var(--gold);margin-bottom:6px;">STAFF ACCESS</div>
+    <div style="font-family:'Crimson Pro',serif;font-size:14px;color:var(--text-dim);font-style:italic;margin-bottom:24px;">Select your role to continue</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <a href="admin/dashboard.html" style="display:block;padding:11px;background:rgba(139,26,26,0.2);border:1px solid rgba(192,57,43,0.4);border-radius:3px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--danger-text);text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='rgba(139,26,26,0.4)'" onmouseout="this.style.background='rgba(139,26,26,0.2)'">
+        ⚡ MAIN SERVER CONTROL
+      </a>
+      <a href="admin/crisis-staff.html" style="display:block;padding:11px;background:rgba(46,125,79,0.15);border:1px solid rgba(111,207,151,0.3);border-radius:3px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--success-text);text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='rgba(46,125,79,0.3)'" onmouseout="this.style.background='rgba(46,125,79,0.15)'">
+        ⚡ CRISIS STAFF PORTAL
+      </a>
+    </div>
+    <button onclick="closeStaffPortal()" style="margin-top:18px;background:none;border:none;font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--text-dim);cursor:pointer;padding:4px 12px;transition:color 0.2s;" onmouseover="this.style.color='var(--text-secondary)'" onmouseout="this.style.color='var(--text-dim)'">DISMISS</button>
   </div>
 </div>
+</div>
 
+<script>
+function openStaffPortal() {
+  document.getElementById('staffModal').style.display = 'flex';
+}
+function closeStaffPortal() {
+  document.getElementById('staffModal').style.display = 'none';
+}
+// Close on backdrop click
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('staffModal');
+  if (e.target === modal) closeStaffPortal();
+});
+</script>
 <script type="module" src="js/login.js"></script>
 </body>
 </html>
