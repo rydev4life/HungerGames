@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitol Broadcast — The 100th Hunger Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="../css/main.css">
+<style>
+  .spec-grid { display:grid; grid-template-columns:1fr 280px; gap:20px; max-width:1000px; margin:0 auto; padding:20px; }
+  @media(max-width:700px){ .spec-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body style="background:var(--dark-0);min-height:100vh;">
+
+<div class="cannon-flash" id="cannonFlash"></div>
+<audio id="cannonAudio" src="../cannon.mp3" preload="auto"></audio>
+
+<!-- CANNON DEATH NOTIFICATION -->
+<div class="cannon-overlay" id="cannonOverlay">
+  <div class="cannon-notification">
+    <div class="cannon-notif-seal">◆ CAPITOL BROADCAST ◆</div>
+    <span class="cannon-notif-icon">💀</span>
+    <div class="cannon-notif-title">CANNON FIRE</div>
+    <div class="cannon-notif-subtitle">A tribute has been eliminated from the arena</div>
+    <hr class="cannon-notif-divider">
+    <div id="cannonTributeList"></div>
+    <div style="margin-top:14px;font-size:12px;color:var(--text-dim);font-style:italic;font-family:'Crimson Pro',serif;">
+      The Capitol mourns... and celebrates.
+    </div>
+    <button class="cannon-notif-close" onclick="document.getElementById('cannonOverlay').classList.remove('visible')">DISMISS</button>
+  </div>
+</div>
+
+<div class="spectator-header">
+  <img src="../capitol-seal.webp" alt="Capitol Seal" style="width:80px;height:auto;display:block;margin:0 auto 14px;opacity:0.9;" />
+  <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:var(--gold-dim);margin-bottom:10px;">◆ CAPITOL BROADCAST NETWORK ◆</div>
+  <div class="spectator-title">THE 100<sup style="font-size:16px;">TH</sup> HUNGER GAMES</div>
+  <div class="spectator-sub">5th Quinquennial Quell · Public Broadcast Feed</div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;">
+    <div class="pulse-dot"></div>
+    <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--danger-text);letter-spacing:2px;">LIVE BROADCAST</span>
+  </div>
+</div>
+
+<div class="spec-grid">
+
+  <!-- LIVE FEED -->
+  <div>
+    <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold);margin-bottom:12px;">ARENA UPDATES</div>
+    <div id="spectatorFeed">
+      <div class="empty-state">Awaiting broadcast...</div>
+    </div>
+  </div>
+
+  <!-- TRIBUTE STATUS -->
+  <div>
+    <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold);margin-bottom:12px;">TRIBUTE STATUS</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold);" id="specAlive">24</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px;">ALIVE</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--danger-text);" id="specDead">0</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px;">FALLEN</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--info-text);" id="specDay">1</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px;">DAY</div>
+      </div>
+    </div>
+    <div id="spectatorTributes"></div>
+  </div>
+
+</div>
+
+<div style="text-align:center;padding:24px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--text-dim);">
+  PANEM ET CIRCENSES · CAPITOL BROADCAST NETWORK · ALL RIGHTS RESERVED
+  <br><br>
+  <a href="../index.html" style="color:var(--gold-dim);text-decoration:none;">Delegate Login</a>
+</div>
+
+<script type="module">
+import {
+  db, ref, onValue, query, orderByChild, limitToLast, TRIBUTES_INIT, formatTime
+} from '../js/firebase.js';
+
+// Feed
+const feedRef = query(ref(db, 'feed'), orderByChild('ts'), limitToLast(30));
+onValue(feedRef, snap => {
+  const container = document.getElementById('spectatorFeed');
+  container.innerHTML = '';
+  if (!snap.exists()) { container.innerHTML = '<div class="empty-state">Awaiting broadcast...</div>'; return; }
+  const items = [];
+  snap.forEach(c => items.push(c.val()));
+  items.sort((a,b) => (b.ts||0)-(a.ts||0));
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = `feed-item ${item.type || 'event'}`;
+    div.innerHTML = `
+      <div class="feed-meta">
+        <span class="feed-badge badge-${item.badge || 'event'}">${(item.badge || 'event').toUpperCase()}</span>
+        <span class="feed-time">${item.time || formatTime(item.ts)}</span>
+      </div>
+      <div class="feed-text">${item.text}</div>`;
+    container.appendChild(div);
+  });
+
+  // Trigger cannon on new death
+  if (feedLoaded) {
+    const arr = [];
+    snap.forEach(c => arr.push(c.val()));
+    const last = arr[arr.length-1];
+    if (last && last.type === 'death') {
+      document.getElementById('cannonFlash').classList.add('boom');
+      setTimeout(() => document.getElementById('cannonFlash').classList.remove('boom'), 1200);
+      const audio = document.getElementById('cannonAudio');
+      if (audio) { audio.currentTime = 0; audio.play().catch(()=>{}); }
+      const match = last.text ? last.text.match(/<strong>([^<]+)<\/strong> of ([^h]+) has been/) : null;
+      const tList = document.getElementById('cannonTributeList');
+      if (tList) tList.innerHTML = match
+        ? `<div class="cannon-notif-tribute">${match[1]}<span>${match[2].trim()}</span></div>`
+        : `<div class="cannon-notif-tribute">A tribute has fallen<span>See the feed below</span></div>`;
+      document.getElementById('cannonOverlay').classList.add('visible');
+    }
+  }
+  feedLoaded = true;
+});
+
+
+
+
+// Tributes
+const SPEC_TRIBUTES = [
+  {id:"t01",name:"Valeria Apollo",    district:"District 1", hp:100,alive:true,status:"Cornucopia — Career alliance forming"},
+  {id:"t02",name:"Velouro Leo",       district:"District 1", hp:100,alive:true,status:"Cornucopia — Securing weapons cache"},
+  {id:"t03",name:"Brontes Ares",      district:"District 2", hp:100,alive:true,status:"Leading Career alliance"},
+  {id:"t04",name:"Kiyra Kain",        district:"District 2", hp:100,alive:true,status:"Tracking escaping tributes"},
+  {id:"t05",name:"Synrik Orion",      district:"District 3", hp:100,alive:true,status:"Fled north — forest cover"},
+  {id:"t06",name:"Elena Atheniapolos",district:"District 3", hp:100,alive:true,status:"Fled northeast — concealed"},
+  {id:"t07",name:"Corven Tide",       district:"District 4", hp:100,alive:true,status:"Career alliance — near lake"},
+  {id:"t08",name:"Tori Vegah",        district:"District 4", hp:100,alive:true,status:"Career alliance patrol"},
+  {id:"t09",name:"Volti Helios",      district:"District 5", hp:100,alive:true,status:"Fled west — high ground"},
+  {id:"t10",name:"Lyra Solenn",       district:"District 5", hp:100,alive:true,status:"Fled south — seeking water"},
+  {id:"t11",name:"Axel Ode",          district:"District 6", hp:100,alive:true,status:"Fled east — undergrowth"},
+  {id:"t12",name:"Veesuvi Rain",      district:"District 6", hp:100,alive:true,status:"Injured — moving southeast"},
+  {id:"t13",name:"Plutonus Blu",      district:"District 7", hp:100,alive:true,status:"Treetop — observing"},
+  {id:"t14",name:"Mebanis Cades",     district:"District 7", hp:100,alive:true,status:"Forest — gathering resources"},
+  {id:"t15",name:"Odinsos Hemingway", district:"District 8", hp:100,alive:true,status:"Hiding — rocky outcrop"},
+  {id:"t16",name:"Lamina Calow",      district:"District 8", hp:100,alive:true,status:"Moving west — avoiding Careers"},
+  {id:"t17",name:"Anaya Trove",       district:"District 9", hp:100,alive:true,status:"Fled northwest — shelter"},
+  {id:"t18",name:"Claude Alainus",    district:"District 9", hp:100,alive:true,status:"Fled west — grain fields"},
+  {id:"t19",name:"Marvin Narlan",     district:"District 10",hp:100,alive:true,status:"Moving south — open terrain"},
+  {id:"t20",name:"Vanderwall Moon",   district:"District 10",hp:100,alive:true,status:"Fled southwest — concealed"},
+  {id:"t21",name:"Coryo Chambers",    district:"District 11",hp:100,alive:true,status:"Eastern sector — grain fields"},
+  {id:"t22",name:"Sisou Confucias",   district:"District 11",hp:100,alive:true,status:"Treetop — watching boundary"},
+  {id:"t23",name:"Cecelia Kebih",     district:"District 12",hp:100,alive:true,status:"Fled north — riverbank"},
+  {id:"t24",name:"Mauve Plinth",      district:"District 12",hp:100,alive:true,status:"Fled north — moving carefully"},
+];
+
+let specTributeState = SPEC_TRIBUTES.map(t => ({...t}));
+
+function renderSpecTributes() {
+  const container = document.getElementById('spectatorTributes');
+  container.innerHTML = '';
+  specTributeState.forEach(t => {
+    const hp = t.alive ? (t.hp ?? 100) : 0;
+    const div = document.createElement('div');
+    div.style.cssText = `padding:7px 0;border-bottom:1px solid var(--border);opacity:${t.alive ? 1 : 0.4};`;
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+        <span style="font-family:'Cinzel',serif;font-size:10px;color:${t.alive ? 'var(--gold)' : 'var(--text-dim)'};">${t.name}</span>
+        <span style="font-size:9px;color:var(--text-dim);">${t.district}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">${t.alive ? t.status : '⚰ Fallen'}</div>
+      <div class="hp-bar"><div class="hp-fill ${hp > 65 ? 'hp-high' : hp > 30 ? 'hp-mid' : 'hp-low'}" style="width:${hp}%"></div></div>`;
+    container.appendChild(div);
+  });
+});
+
+// Cannon event listener
+let lastCannonTs = 0;
+onValue(ref(db, 'cannonEvent'), snap => {
+  if (!snap.exists()) return;
+  const event = snap.val();
+  if (!event.ts || event.ts <= lastCannonTs) return;
+  lastCannonTs = event.ts;
+  if (Date.now() - event.ts > 8000) return;
+
+  document.getElementById('cannonFlash').classList.add('boom');
+  setTimeout(() => document.getElementById('cannonFlash').classList.remove('boom'), 1200);
+  const audio = document.getElementById('cannonAudio');
+  if (audio) { audio.currentTime = 0; audio.play().catch(()=>{}); }
+  const tList = document.getElementById('cannonTributeList');
+  if (tList) tList.innerHTML = event.tributeName
+    ? `<div class="cannon-notif-tribute">${event.tributeName}<span>${event.tributeDistrict || ''}</span></div>`
+    : `<div class="cannon-notif-tribute">A tribute has fallen<span>See the live feed</span></div>`;
+  document.getElementById('cannonOverlay').classList.add('visible');
+});
+
+// Remove alliances from stats
+onValue(ref(db, 'stats'), snap => {
+  if (!snap.exists()) return;
+  const s = snap.val();
+  document.getElementById('specAlive').textContent = s.alive ?? 24;
+  document.getElementById('specDead').textContent = s.dead ?? 0;
+  document.getElementById('specDay').textContent = s.day ?? 1;
+});
+</script>
+</body>
+</html>
